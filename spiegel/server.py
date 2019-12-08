@@ -36,18 +36,15 @@ def Server(cls, obj):
     methods, properties = get_methods_and_properties(cls)
     methods = [m for m in methods if not m.startswith("__")]
     # TODO remove duplication
-    for name in methods:
-        endpoint = f"/{name}"
-        endpoint_name = name
-        endpoint_method = server_method(getattr(cls, name), obj)
+    for mname in methods:
         app.add_url_rule(
-            endpoint, endpoint_name, endpoint_method, methods=["POST"],
+            f"/{mname}",
+            mname,
+            server_method(getattr(cls, mname), obj),
+            methods=["POST"],
         )
-    for name in properties:
-        endpoint = f"/{name}"
-        endpoint_name = name
-        endpoint_method = server_property(name, obj)
+    for pname in properties:
         app.add_url_rule(
-            endpoint, endpoint_name, endpoint_method, methods=["POST"]
+            f"/{pname}", pname, server_property(pname, obj), methods=["POST"],
         )
     return app
