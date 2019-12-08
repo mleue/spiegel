@@ -1,7 +1,7 @@
 from functools import wraps
 from inspect import signature
 import requests
-from .utils import get_methods_and_properties
+from .utils import get_methods_on_class, get_properties_on_class
 
 
 def client_method(func):
@@ -30,9 +30,9 @@ def client_property(prop):
 
 
 def Client(cls, address):
-    # TODO replace __init__ method to allow specification of address
-    methods, properties = get_methods_and_properties(cls)
+    methods = get_methods_on_class(cls)
     methods = [m for m in methods if not m.startswith("__")]
+    properties = get_properties_on_class(cls)
     for name in methods:
         setattr(cls, name, client_method(getattr(cls, name)))
     for name in properties:

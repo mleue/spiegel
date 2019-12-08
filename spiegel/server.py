@@ -1,7 +1,7 @@
 from inspect import signature
 from flask import Flask, request
 from flask.json import jsonify
-from .utils import get_methods_and_properties
+from .utils import get_methods_on_class, get_properties_on_class
 
 
 def server_method(func, obj):
@@ -33,8 +33,9 @@ def server_property(prop, obj):
 # TODO make it so that only the obj is required?
 def Server(cls, obj):
     app = Flask(__name__)
-    methods, properties = get_methods_and_properties(cls)
+    methods = get_methods_on_class(cls)
     methods = [m for m in methods if not m.startswith("__")]
+    properties = get_properties_on_class(cls)
     # TODO remove duplication
     for mname in methods:
         app.add_url_rule(
