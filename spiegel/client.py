@@ -1,7 +1,7 @@
 from functools import wraps
 from inspect import signature
 import requests
-from utils import get_methods_and_properties
+from .utils import get_methods_and_properties
 
 
 def client_method(func):

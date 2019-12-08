@@ -1,7 +1,7 @@
 from inspect import signature
 from flask import Flask, request
 from flask.json import jsonify
-from utils import get_methods_and_properties
+from .utils import get_methods_and_properties
 
 
 def server_method(func, obj):
