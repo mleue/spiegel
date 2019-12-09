@@ -1,7 +1,7 @@
 from spiegel.multiserver import MultiServer
 import pytest
 from flask import Flask
-from .calculator import get_calculator
+from .calculator import Calculator
 
 
 # TODO test that we can forward errors through the wire
@@ -14,9 +14,8 @@ obj_ids = [1, 2, 3]
 
 @pytest.fixture
 def app():
-    classes = [get_calculator() for _ in range(3)]
-    objs = [get_calculator()() for _ in range(3)]
-    yield MultiServer(classes, objs, obj_ids)
+    objs = [Calculator() for _ in range(3)]
+    yield MultiServer(objs, obj_ids)
 
 
 def test_server_returns_flask_app(app):

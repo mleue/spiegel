@@ -1,18 +1,17 @@
 import time
 import threading
-from spiegel.client import Client
-from spiegel.server import Server
+from spiegel.client import create_client
+from spiegel.server import create_server
 import pytest
-from .calculator import get_calculator
+from .calculator import Calculator
 
 
 # TODO test that altered class methods/properties have same signature as orig
-ClientCalculator = get_calculator()
 
 
 @pytest.fixture(scope="session")
 def app():
-    yield Server(get_calculator(), get_calculator()())
+    yield create_server(Calculator())
 
 
 @pytest.fixture(scope="session")
@@ -25,11 +24,11 @@ def model_server(app):
 
 @pytest.fixture(scope="session")
 def client(model_server):
-    yield Client(ClientCalculator, "http://localhost:5000")()
+    yield create_client(Calculator, "http://localhost:5000")()
 
 
 def test_client_returns_original_class_type(client):
-    assert isinstance(client, ClientCalculator)
+    assert isinstance(client, Calculator)
 
 
 def test_client_can_be_used(client):

@@ -1,7 +1,7 @@
-from spiegel.server import Server
+from spiegel.server import create_server
 import pytest
 from flask import Flask
-from .calculator import get_calculator
+from .calculator import Calculator
 
 
 # TODO test that we can forward errors through the wire
@@ -12,7 +12,7 @@ expected_endpoints = ["obj.last_result", "obj.sum"]
 
 @pytest.fixture
 def app():
-    yield Server(get_calculator(), get_calculator()())
+    yield create_server(Calculator())
 
 
 def test_server_returns_flask_app(app):

@@ -30,7 +30,8 @@ def server_property(prop, obj):
     return wrapped
 
 
-def create_obj_blueprint(cls, obj, obj_id, url_prefix=None):
+def create_obj_blueprint(obj, obj_id, url_prefix=None):
+    cls = obj.__class__
     bp = Blueprint(obj_id, __name__, url_prefix=url_prefix)
     methods = get_methods_on_class(cls)
     methods = [m for m in methods if not m.startswith("__")]
@@ -50,9 +51,8 @@ def create_obj_blueprint(cls, obj, obj_id, url_prefix=None):
     return bp
 
 
-# TODO make it so that only the obj is required?
-def Server(cls, obj):
+def create_server(obj):
     app = Flask(__name__)
-    bp = create_obj_blueprint(cls, obj, obj_id="obj")
+    bp = create_obj_blueprint(obj, obj_id="obj")
     app.register_blueprint(bp)
     return app

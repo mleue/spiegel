@@ -3,7 +3,7 @@ import threading
 from spiegel.multiclient import MultiClient
 from spiegel.multiserver import MultiServer
 import pytest
-from .calculator import get_calculator
+from .calculator import Calculator
 
 
 obj_ids = [1, 2, 3]
@@ -11,9 +11,8 @@ obj_ids = [1, 2, 3]
 
 @pytest.fixture(scope="session")
 def app():
-    classes = [get_calculator() for _ in range(3)]
-    objs = [get_calculator()() for _ in range(3)]
-    yield MultiServer(classes, objs, obj_ids)
+    objs = [Calculator() for _ in range(3)]
+    yield MultiServer(objs, obj_ids)
 
 
 @pytest.fixture(scope="session")
@@ -26,7 +25,7 @@ def model_server(app):
 
 @pytest.fixture(scope="session")
 def client(model_server):
-    yield MultiClient(get_calculator, "http://localhost:5001")
+    yield MultiClient(Calculator, "http://localhost:5001")
 
 
 @pytest.mark.xfail

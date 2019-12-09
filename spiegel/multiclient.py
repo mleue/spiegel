@@ -1,10 +1,10 @@
 import requests
-from .client import Client
+from .client import create_client
 
 
 class MultiClient:
-    def __init__(self, cls_factory, address):
-        self.cls_factory = cls_factory
+    def __init__(self, cls, address):
+        self.cls = cls
         self.address = address
 
     @property
@@ -12,4 +12,4 @@ class MultiClient:
         return requests.post(f"{self.address}/ids").json()
 
     def create_client_for_id(self, obj_id):
-        return Client(self.cls_factory(), f"{self.address}/{obj_id}")
+        return create_client(self.cls, f"{self.address}/{obj_id}")

@@ -24,20 +24,22 @@ def client_property(prop):
     @wraps(prop)
     def wrapped(self):
         # run a post request against the appropriate endpoint
-        print(f"hello from property {prop}")
-        print(self.address + "/" + prop)
         ret = requests.post(f"{self.address}/{prop}")
         return ret.json()
     return wrapped
 
 
-def Client(cls, address):
-    methods = get_methods_on_class(cls)
+def create_client(cls, address):
+    # copy the class
+    class Client(cls):
+        pass
+
+    methods = get_methods_on_class(Client)
     methods = [m for m in methods if not m.startswith("__")]
-    properties = get_properties_on_class(cls)
+    properties = get_properties_on_class(Client)
     for name in methods:
-        setattr(cls, name, client_method(getattr(cls, name)))
+        setattr(Client, name, client_method(getattr(Client, name)))
     for name in properties:
-        setattr(cls, name, property(client_property(name)))
-    setattr(cls, "address", address)
-    return cls
+        setattr(Client, name, property(client_property(name)))
+    setattr(Client, "address", address)
+    return Client
