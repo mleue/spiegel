@@ -5,6 +5,7 @@ from .calculator import get_calculator
 
 
 # TODO test that we can forward errors through the wire
+# TODO test non-unique object ids
 
 
 expected_endpoints = ["last_result", "sum"]
@@ -27,12 +28,18 @@ def test_server_contains_expected_endpoints(app):
     for obj_id in obj_ids:
         for exp in expected_endpoints:
             assert f"{obj_id}.{exp}" in endpoints
+    assert "ids" in endpoints
 
 
 @pytest.fixture
 def client(app):
     with app.test_client() as client:
         yield client
+
+
+def test_server_ids(client):
+    r = client.post("/ids")
+    assert r.json == obj_ids
 
 
 def test_server_can_be_queried(client):
