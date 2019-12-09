@@ -15,8 +15,11 @@ def server_method(func, obj):
             if not name == "self":
                 forward_kwargs[name] = request.json.get(name)
         # call the original method on the true object with the parsed args
-        ret = getattr(obj, func.__name__)(**forward_kwargs)
-        return jsonify(ret)
+        try:
+            ret = getattr(obj, func.__name__)(**forward_kwargs)
+            return jsonify(ret)
+        except Exception as e:
+            return jsonify({"type": type(e).__name__, "message": str(e)}), 400
 
     return wrapped
 
@@ -24,8 +27,11 @@ def server_method(func, obj):
 def server_property(prop, obj):
     def wrapped():
         # call the original property getter on the true object
-        ret = getattr(obj, prop)
-        return jsonify(ret)
+        try:
+            ret = getattr(obj, prop)
+            return jsonify(ret)
+        except Exception as e:
+            return jsonify({"type": type(e).__name__, "message": str(e)}), 400
 
     return wrapped
 

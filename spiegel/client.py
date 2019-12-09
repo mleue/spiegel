@@ -16,7 +16,11 @@ def client_method(func):
         # TODO func.__name__ coordinated with server
         # run a post request against the appropriate endpoint with the params
         ret = requests.post(f"{self.address}/{func.__name__}", json=params)
-        return ret.json()
+        ret = ret.json()
+        if "type" in ret and "message" in ret:
+            raise ValueError(ret["message"])
+        else:
+            return ret
     return wrapped
 
 
@@ -25,7 +29,11 @@ def client_property(prop):
     def wrapped(self):
         # run a post request against the appropriate endpoint
         ret = requests.post(f"{self.address}/{prop}")
-        return ret.json()
+        ret = ret.json()
+        if "type" in ret and "message" in ret:
+            raise ValueError(ret["message"])
+        else:
+            return ret
     return wrapped
 
 
