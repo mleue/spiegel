@@ -7,7 +7,7 @@ from .calculator import get_calculator
 # TODO test that we can forward errors through the wire
 
 
-expected_endpoints = ["last_result", "sum"]
+expected_endpoints = ["obj.last_result", "obj.sum"]
 
 
 @pytest.fixture

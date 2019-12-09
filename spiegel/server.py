@@ -1,5 +1,5 @@
 from inspect import signature
-from flask import Flask, request
+from flask import Flask, request, Blueprint
 from flask.json import jsonify
 from .utils import get_methods_on_class, get_properties_on_class
 
@@ -30,22 +30,29 @@ def server_property(prop, obj):
     return wrapped
 
 
-# TODO make it so that only the obj is required?
-def Server(cls, obj):
-    app = Flask(__name__)
+def create_obj_blueprint(cls, obj, obj_id, url_prefix=None):
+    bp = Blueprint(obj_id, __name__, url_prefix=url_prefix)
     methods = get_methods_on_class(cls)
     methods = [m for m in methods if not m.startswith("__")]
     properties = get_properties_on_class(cls)
     # TODO remove duplication
     for mname in methods:
-        app.add_url_rule(
+        bp.add_url_rule(
             f"/{mname}",
             mname,
             server_method(getattr(cls, mname), obj),
             methods=["POST"],
         )
     for pname in properties:
-        app.add_url_rule(
+        bp.add_url_rule(
             f"/{pname}", pname, server_property(pname, obj), methods=["POST"],
         )
+    return bp
+
+
+# TODO make it so that only the obj is required?
+def Server(cls, obj):
+    app = Flask(__name__)
+    bp = create_obj_blueprint(cls, obj, obj_id="obj")
+    app.register_blueprint(bp)
     return app
