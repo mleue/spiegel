@@ -24,6 +24,8 @@ def client_property(prop):
     @wraps(prop)
     def wrapped(self):
         # run a post request against the appropriate endpoint
+        print(f"hello from property {prop}")
+        print(self.address + "/" + prop)
         ret = requests.post(f"{self.address}/{prop}")
         return ret.json()
     return wrapped
