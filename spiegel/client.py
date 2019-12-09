@@ -15,6 +15,7 @@ def client_method(func):
         params = {k: v for k, v in params.arguments.items() if not k == "self"}
         # TODO func.__name__ coordinated with server
         # run a post request against the appropriate endpoint with the params
+        print(f"triggered client method {func.__name__}.")
         ret = requests.post(f"{self.address}/{func.__name__}", json=params)
         return ret.json()
     return wrapped
@@ -24,6 +25,7 @@ def client_property(prop):
     @wraps(prop)
     def wrapped(self):
         # run a post request against the appropriate endpoint
+        print(f"triggered client property {prop}.")
         ret = requests.post(f"{self.address}/{prop}")
         return ret.json()
     return wrapped
@@ -32,11 +34,14 @@ def client_property(prop):
 def create_client(cls, address):
     # copy the class
     class Client(cls):
-        pass
+        # does not have a traditional __init__ anymore, since it
+        # connects to the already initialized remote object
+        def __init__(self):
+            pass
 
-    methods = get_methods_on_class(Client)
+    methods = get_methods_on_class(cls)
     methods = [m for m in methods if not m.startswith("__")]
-    properties = get_properties_on_class(Client)
+    properties = get_properties_on_class(cls)
     for name in methods:
         setattr(Client, name, client_method(getattr(Client, name)))
     for name in properties:
