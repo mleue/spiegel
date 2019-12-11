@@ -17,7 +17,7 @@ def client_method(func):
         # run a post request against the appropriate endpoint with the params
         ret = requests.post(f"{self.address}/{func.__name__}", json=params)
         ret = ret.json()
-        if "type" in ret and "message" in ret:
+        if isinstance(ret, dict) and "type" in ret and "message" in ret:
             raise ValueError(ret["message"])
         else:
             return ret
