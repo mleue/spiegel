@@ -17,6 +17,7 @@ def client_method(func):
         # run a post request against the appropriate endpoint with the params
         ret = requests.post(f"{self.address}/{func.__name__}", json=params)
         ret = ret.json()
+        # TODO add test that checks for this (i.e. doesn't raise error if return is list of words with those 2 words included)
         if isinstance(ret, dict) and "type" in ret and "message" in ret:
             raise ValueError(ret["message"])
         else:
