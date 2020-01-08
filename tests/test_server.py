@@ -45,4 +45,5 @@ def test_server_can_be_queried(client):
 
 def test_server_fails_with_500_on_error(client):
     r = client.post("/sum", json={"a": 1, "b": "2"})
-    assert r.status_code == 500
+    assert r.status_code == 400
+    assert r.json["type"] == "TypeError"

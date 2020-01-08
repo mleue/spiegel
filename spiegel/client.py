@@ -31,7 +31,7 @@ def client_property(prop):
         # run a post request against the appropriate endpoint
         ret = requests.post(f"{self.address}/{prop}")
         ret = ret.json()
-        if "type" in ret and "message" in ret:
+        if isinstance(ret, dict) and "type" in ret and "message" in ret:
             raise ValueError(ret["message"])
         else:
             return ret
