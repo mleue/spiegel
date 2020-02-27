@@ -1,3 +1,4 @@
+from typing import Any
 from inspect import signature, _empty
 from pydantic import create_model, BaseModel
 # TODO make this robust
