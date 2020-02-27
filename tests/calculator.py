@@ -8,4 +8,8 @@ class Calculator:
 
     def sum(self, a: float, b: float):
         self._last_result = a + b
-        return self.last_result
+        return self._last_result
+
+    def quotient(self, a: float, b: float):
+        self._last_result = a / b
+        return self._last_result

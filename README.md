@@ -7,7 +7,7 @@ The word **spiegel** is German for **mirror**. This library enables you to quick
 ## What it is
 
 In order to function, **spiegel** needs both a server and a client. 
-The server uses your an instance of your class and exposes an API via http which 1:1 mirrors the methods and properties on the object. If any of those endpoints is called, the server simply calls the respective method on the object it keeps locally. 
+The server uses an instance of your class and exposes an API via http which 1:1 mirrors the methods and properties on the object. If any of those endpoints is called, the server simply calls the respective method on the object it keeps locally. 
 The client is started with your class and an address to the server. It replaces all methods and properties on the class with http requests to the respective endpoint on the remote mirror object that is running as an http server.
 
 The client looks and behaves just like if you had a local instance of the object in memory, but instead it generates all behavior by communicating with the mirrored object.
@@ -37,15 +37,15 @@ class Calculator:
 from spiegel.server import create_server
 from calculator import Calculator
 
-def create_app():
-    return create_server(Calculator())
+app = create_server(Calculator())
 ```
 
-- the server uses `flask` under the hood, so you can start it in the following way from your cli
+- the server uses `fastAPI` under the hood, so you can start it locally in the following way from your cli to be available at `http://localhost:5000`
 ```bash
-$ export FLASK_APP=calculator_server.py
-$ flask run --port=5000
+$ uvicorn calculator_server:app --port=5000
 ```
+
+- due to being based on `fastAPI`, an `OpenAPI` schema is automatically created and can e.g. be retrieved in `swagger` format at `{address}:{port}/docs` (i.e. in this example at `localhost:5000/docs`
 
 
 ### Client

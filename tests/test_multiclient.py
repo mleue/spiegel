@@ -1,8 +1,9 @@
 import time
-import threading
+from multiprocessing import Process
+import pytest
+import uvicorn
 from spiegel.multiclient import MultiClient
 from spiegel.multiserver import MultiServer
-import pytest
 from .calculator import Calculator
 
 
@@ -17,10 +18,11 @@ def app():
 
 @pytest.fixture(scope="session")
 def model_server(app):
-    thread = threading.Thread(target=app.run, kwargs={"port": 5001})
-    thread.daemon = True
-    thread.start()
+    p = Process(target=uvicorn.run, args=(app,), kwargs={"port": 5001}, daemon=True)
+    p.start()
     time.sleep(0.1)
+    yield
+    p.kill()
 
 
 @pytest.fixture(scope="session")

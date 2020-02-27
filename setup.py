@@ -6,6 +6,6 @@ setup(
     description="A server/client architecture for remote python objects.",
     license="MIT",
     packages=find_packages(exclude=["tests"]),
-    install_requires=["flask", "requests"],
+    install_requires=["fastAPI", "requests", "uvicorn"],
     extras_require={"dev": ["pytest"]},
 )
