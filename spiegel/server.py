@@ -1,65 +1,44 @@
-from inspect import signature, _empty
-from pydantic import create_model
+from typing import Any
 from fastapi import FastAPI, HTTPException, APIRouter
-from .utils import get_methods_on_class, get_properties_on_class
+from .utils import (
+    get_relevant_attributes_from_class,
+    create_pydantic_model_from_function_signature,
+)
 
 
-def server_method(func, obj):
-    # grab the signature of the original object method
-    sig = signature(func)
-    # build a pydantic input model based on the function signature
-    pydantic_params = {}
-    for param_name, param in sig.parameters.items():
-        if param_name == "self":
-            continue
-        else:
-            param_type = (
-                Any if param.annotation == _empty else param.annotation
-            )
-            param_default = ... if param.default == _empty else param.default
-            pydantic_params[param_name] = (param_type, param_default)
-    ModelIn = create_model(func.__name__, **pydantic_params)
-
-    def wrapped(i: ModelIn):
-        # call the original method on the true object with the parsed args
+def create_method_endpoint(obj, method_name, method):
+    Model = create_pydantic_model_from_function_signature(method_name, method)
+    def wrapped(i: Model):
+        # call the original attr on the true object with the parsed args
         try:
-            return getattr(obj, func.__name__)(**i.dict())
+            return method(obj, **i.dict())
         except Exception as e:
             payload = {"type": type(e).__name__, "message": str(e)}
             return HTTPException(400, payload)
-
     return wrapped
 
 
-def server_property(prop, obj):
+def create_property_endpoint(obj, prop_name, prop):
     def wrapped():
         # call the original property getter on the true object
         try:
-            return getattr(obj, prop)
+            return getattr(obj, prop_name)
         except Exception as e:
             payload = {"type": type(e).__name__, "message": str(e)}
             return HTTPException(400, payload)
-
     return wrapped
 
 
 def create_obj_router(obj):
     cls = obj.__class__
+    relevant_attributes = get_relevant_attributes_from_class(cls)
     router = APIRouter()
-    methods = get_methods_on_class(cls)
-    methods = [m for m in methods if not m.startswith("__")]
-    properties = get_properties_on_class(cls)
-    # TODO remove duplication
-    for mname in methods:
-        router.add_api_route(
-            f"/{mname}",
-            server_method(getattr(cls, mname), obj),
-            methods=["POST"],
-        )
-    for pname in properties:
-        router.add_api_route(
-            f"/{pname}", server_property(pname, obj), methods=["POST"],
-        )
+    for attr_name, attr in relevant_attributes:
+        if callable(attr):
+            endpoint = create_method_endpoint(obj, attr_name, attr)
+        elif isinstance(attr, property):
+            endpoint = create_property_endpoint(obj, attr_name, attr)
+        router.add_api_route(f"/{attr_name}", endpoint, methods=["POST"])
     return router
 
 
