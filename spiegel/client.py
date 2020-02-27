@@ -1,23 +1,25 @@
 from functools import wraps
 from inspect import signature
 import requests
-from .utils import get_methods_on_class, get_properties_on_class
+from .utils import get_relevant_attributes_from_class
+# TODO client can only connect if it has a matching version with the server
 
 
-def client_method(func):
-    @wraps(func)
+def client_method(method_name, method):
+    @wraps(method)
     def wrapped(*args, **kwargs):
         self = args[0]
         # grab the signature of the original object method
-        sig = signature(func)
+        sig = signature(method)
         # bind the input arguments to the original signature
         params = sig.bind(*args, **kwargs)
         params = {k: v for k, v in params.arguments.items() if not k == "self"}
         # TODO func.__name__ coordinated with server
         # run a post request against the appropriate endpoint with the params
-        ret = requests.post(f"{self.address}/{func.__name__}", json=params)
+        ret = requests.post(f"{self.address}/{method_name}", json=params)
         ret = ret.json()
         # TODO add test that checks for this (i.e. doesn't raise error if return is list of words with those 2 words included)
+        # TODO instead of ValueError, raise a SpiegelError here with all info
         if isinstance(ret, dict) and "type" in ret and "message" in ret:
             raise ValueError(ret["message"])
         else:
@@ -25,11 +27,11 @@ def client_method(func):
     return wrapped
 
 
-def client_property(prop):
-    @wraps(prop)
+def client_property(prop_name):
+    @wraps(prop_name)
     def wrapped(self):
         # run a post request against the appropriate endpoint
-        ret = requests.post(f"{self.address}/{prop}")
+        ret = requests.post(f"{self.address}/{prop_name}")
         ret = ret.json()
         if isinstance(ret, dict) and "type" in ret and "message" in ret:
             raise ValueError(ret["message"])
@@ -46,12 +48,11 @@ def create_client(cls, address):
         def __init__(self):
             pass
 
-    methods = get_methods_on_class(cls)
-    methods = [m for m in methods if not m.startswith("__")]
-    properties = get_properties_on_class(cls)
-    for name in methods:
-        setattr(Client, name, client_method(getattr(Client, name)))
-    for name in properties:
-        setattr(Client, name, property(client_property(name)))
+    relevant_attributes = get_relevant_attributes_from_class(cls)
+    for attr_name, attr in relevant_attributes:
+        if callable(attr):
+            setattr(Client, attr_name, client_method(attr_name, attr))
+        elif isinstance(attr, property):
+            setattr(Client, attr_name, property(client_property(attr_name)))
     setattr(Client, "address", address)
     return Client

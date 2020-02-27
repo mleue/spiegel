@@ -1,64 +1,49 @@
-from inspect import signature
-from flask import Flask, request, Blueprint
-from flask.json import jsonify
-from .utils import get_methods_on_class, get_properties_on_class
+from typing import Any
+from fastapi import FastAPI, HTTPException, APIRouter
+from .utils import (
+    get_relevant_attributes_from_class,
+    create_pydantic_model_from_function_signature,
+)
 
 
-def server_method(func, obj):
-    def wrapped(*args, **kwargs):
-        # grab the signature of the original object method
-        sig = signature(func)
-        # according to the signature, parse all expected arguments
-        # from the request payload
-        forward_kwargs = {}
-        for name, _ in sig.parameters.items():
-            if not name == "self":
-                forward_kwargs[name] = request.json.get(name)
-        # call the original method on the true object with the parsed args
+def create_method_endpoint(obj, method_name, method):
+    Model = create_pydantic_model_from_function_signature(method_name, method)
+    def wrapped(i: Model):
+        # call the original attr on the true object with the parsed args
         try:
-            ret = getattr(obj, func.__name__)(**forward_kwargs)
-            return jsonify(ret)
+            return method(obj, **i.dict())
         except Exception as e:
-            return jsonify({"type": type(e).__name__, "message": str(e)}), 400
-
+            payload = {"type": type(e).__name__, "message": str(e)}
+            return HTTPException(400, payload)
     return wrapped
 
 
-def server_property(prop, obj):
+def create_property_endpoint(obj, prop_name, prop):
     def wrapped():
         # call the original property getter on the true object
         try:
-            ret = getattr(obj, prop)
-            return jsonify(ret)
+            return getattr(obj, prop_name)
         except Exception as e:
-            return jsonify({"type": type(e).__name__, "message": str(e)}), 400
-
+            payload = {"type": type(e).__name__, "message": str(e)}
+            return HTTPException(400, payload)
     return wrapped
 
 
-def create_obj_blueprint(obj, obj_id, url_prefix=None):
+def create_obj_router(obj):
     cls = obj.__class__
-    bp = Blueprint(obj_id, __name__, url_prefix=url_prefix)
-    methods = get_methods_on_class(cls)
-    methods = [m for m in methods if not m.startswith("__")]
-    properties = get_properties_on_class(cls)
-    # TODO remove duplication
-    for mname in methods:
-        bp.add_url_rule(
-            f"/{mname}",
-            mname,
-            server_method(getattr(cls, mname), obj),
-            methods=["POST"],
-        )
-    for pname in properties:
-        bp.add_url_rule(
-            f"/{pname}", pname, server_property(pname, obj), methods=["POST"],
-        )
-    return bp
+    relevant_attributes = get_relevant_attributes_from_class(cls)
+    router = APIRouter()
+    for attr_name, attr in relevant_attributes:
+        if callable(attr):
+            endpoint = create_method_endpoint(obj, attr_name, attr)
+        elif isinstance(attr, property):
+            endpoint = create_property_endpoint(obj, attr_name, attr)
+        router.add_api_route(f"/{attr_name}", endpoint, methods=["POST"])
+    return router
 
 
 def create_server(obj):
-    app = Flask(__name__)
-    bp = create_obj_blueprint(obj, obj_id="obj")
-    app.register_blueprint(bp)
+    router = create_obj_router(obj)
+    app = FastAPI(__name__)
+    app.include_router(router)
     return app
