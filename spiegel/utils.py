@@ -1,9 +1,11 @@
 from typing import Any
 from inspect import signature, _empty
 from pydantic import create_model, BaseModel
+
 # TODO make this robust
 # TODO write tests for this
 # TODO get all public attributes on class/object?
+
 
 def get_relevant_attributes_from_class(cls):
     relevant_attributes = []
@@ -17,7 +19,7 @@ def get_relevant_attributes_from_class(cls):
     return relevant_attributes
 
 
-def create_pydantic_model_from_function_signature(name, func):
+def create_pydantic_model_from_function_signature(func, uid):
     # grab the signature of the original object method
     sig = signature(func)
     # build a pydantic input model based on the function signature
@@ -32,4 +34,21 @@ def create_pydantic_model_from_function_signature(name, func):
             )
             param_default = ... if param.default == _empty else param.default
             pydantic_params[param_name] = (param_type, param_default)
-    return create_model(name, **pydantic_params)
+    # need a unique name for each model here, otherwise openapi will complain
+    return create_model(uid, **pydantic_params)
+
+
+def is_dict(obj):
+    return isinstance(obj, dict)
+
+
+def contains_error_detail(ret):
+    return is_dict(ret) and "detail" in ret and is_dict(ret["detail"])
+
+
+def contains_error_fields(ret):
+    return "type" in ret["detail"] and "message" in ret["detail"]
+
+
+def return_is_exception(ret):
+    return contains_error_detail(ret) and contains_error_fields(ret)

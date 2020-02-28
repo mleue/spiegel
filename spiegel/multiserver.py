@@ -2,8 +2,9 @@ from fastapi import FastAPI, APIRouter
 from .server import create_obj_router
 
 # TODO auto-generate object ids?
-# TODO not just /ids but also a more verbose /objects endpoint
+# TODO not just /ids but also a more verbose /objects endpoint (like the /models we now do on neuromodels)
 # TODO why is single client a clear function but this looks like a class?
+# TODO instead of fixed paths for each id, make a dynamic path operation that calls the correct object?
 
 
 def MultiServer(objs, obj_ids):

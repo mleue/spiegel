@@ -6,15 +6,18 @@ from .utils import (
 )
 
 
+# TODO also create a return Model based on the return annotation of the func
 def create_method_endpoint(obj, method_name, method):
-    Model = create_pydantic_model_from_function_signature(method_name, method)
+    # need a uid for each pydantic model, otherwise openapi complains
+    uid = f"{method_name}.{id(obj)}"
+    Model = create_pydantic_model_from_function_signature(method, uid)
     def wrapped(i: Model):
         # call the original attr on the true object with the parsed args
         try:
             return method(obj, **i.dict())
         except Exception as e:
             payload = {"type": type(e).__name__, "message": str(e)}
-            return HTTPException(400, payload)
+            raise HTTPException(400, payload)
     return wrapped
 
 
@@ -25,7 +28,7 @@ def create_property_endpoint(obj, prop_name, prop):
             return getattr(obj, prop_name)
         except Exception as e:
             payload = {"type": type(e).__name__, "message": str(e)}
-            return HTTPException(400, payload)
+            raise HTTPException(400, payload)
     return wrapped
 
 
