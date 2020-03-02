@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="spiegel",
-    version="0.1.2",
+    version="0.1.3",
     description="A server/client architecture for remote python objects.",
     license="MIT",
     packages=find_packages(exclude=["tests"]),
