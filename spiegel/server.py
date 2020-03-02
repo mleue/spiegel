@@ -47,6 +47,6 @@ def create_obj_router(obj):
 
 def create_server(obj):
     router = create_obj_router(obj)
-    app = FastAPI(__name__)
+    app = FastAPI()
     app.include_router(router)
     return app

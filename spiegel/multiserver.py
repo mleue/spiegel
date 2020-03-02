@@ -13,6 +13,6 @@ def MultiServer(objs, obj_ids):
         router = create_obj_router(obj)
         root_router.include_router(router, prefix=f"/{obj_id}")
     root_router.add_api_route("/ids", lambda: obj_ids, methods=["POST"])
-    app = FastAPI(__name__)
+    app = FastAPI()
     app.include_router(root_router)
     return app
