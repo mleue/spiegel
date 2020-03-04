@@ -1,5 +1,6 @@
 import requests
 from .client import create_client
+from .utils import SpiegelError
 
 
 class MultiClient:
@@ -13,6 +14,6 @@ class MultiClient:
 
     def create_client_for_id(self, obj_id):
         if obj_id not in self.ids:
-            raise ValueError(f"Object {obj_id} does not exist.")
+            raise SpiegelError(f"Object {obj_id} does not exist.")
         else:
             return create_client(self.cls, f"{self.address}/{obj_id}")

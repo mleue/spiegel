@@ -1,7 +1,12 @@
 from functools import wraps
 from inspect import signature
 import requests
-from .utils import get_relevant_attributes_from_class, return_is_exception
+from .utils import (
+    get_relevant_attributes_from_class,
+    return_is_exception,
+    SpiegelWireError,
+)
+
 # TODO client can only connect if it has a matching version with the server
 
 
@@ -19,11 +24,11 @@ def client_method(method_name, method):
         ret = requests.post(f"{self.address}/{method_name}", json=params)
         ret = ret.json()
         # TODO add test that checks for this (i.e. doesn't raise error if return is list of words with those 2 words included)
-        # TODO instead of ValueError, raise a SpiegelError here with all info
         if return_is_exception(ret):
-            raise ValueError(ret["detail"]["message"])
+            raise SpiegelWireError(ret["detail"]["message"])
         else:
             return ret
+
     return wrapped
 
 
@@ -34,9 +39,10 @@ def client_property(prop_name):
         ret = requests.post(f"{self.address}/{prop_name}")
         ret = ret.json()
         if return_is_exception(ret):
-            raise ValueError(ret["detail"]["message"])
+            raise SpiegelWireError(ret["detail"]["message"])
         else:
             return ret
+
     return wrapped
 
 

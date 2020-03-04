@@ -52,3 +52,12 @@ def contains_error_fields(ret):
 
 def return_is_exception(ret):
     return contains_error_detail(ret) and contains_error_fields(ret)
+
+
+# TODO turn this into a class that can get dumped as json (to be transferred
+# from server to client) but also instantiated and raised from a JSON response
+class SpiegelError(Exception):
+    pass
+
+class SpiegelWireError(SpiegelError):
+    pass
