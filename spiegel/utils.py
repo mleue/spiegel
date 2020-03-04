@@ -56,7 +56,7 @@ def return_is_exception(ret):
 
 # TODO turn this into a class that can get dumped as json (to be transferred
 # from server to client) but also instantiated and raised from a JSON response
-class SpiegelError(Exception):
+class SpiegelError(ValueError):
     pass
 
 class SpiegelWireError(SpiegelError):
