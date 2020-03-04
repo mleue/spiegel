@@ -13,16 +13,6 @@ def MultiServer(objs, obj_ids):
         router = create_obj_router(obj)
         root_router.include_router(router, prefix=f"/{obj_id}")
     root_router.add_api_route("/ids", lambda: obj_ids, methods=["POST"])
-
-    @root_router.post("/{obj_id}/{endpoint}")
-    def check_object_exists(obj_id, endpoint):
-        if not obj_id in obj_ids:
-            payload = {
-                "type": "ValueError",
-                "message": f"Object {obj_id} does not exist.",
-            }
-            raise HTTPException(400, payload)
-
     app = FastAPI()
     app.include_router(root_router)
     return app

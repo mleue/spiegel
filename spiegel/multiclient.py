@@ -12,4 +12,7 @@ class MultiClient:
         return requests.post(f"{self.address}/ids").json()
 
     def create_client_for_id(self, obj_id):
-        return create_client(self.cls, f"{self.address}/{obj_id}")
+        if obj_id not in self.ids:
+            raise ValueError(f"Object {obj_id} does not exist.")
+        else:
+            return create_client(self.cls, f"{self.address}/{obj_id}")
